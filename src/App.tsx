@@ -1,47 +1,22 @@
-import './App.css'
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import './App.css';
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import LandingPage from './LandingPage';
+import MapView from './MapView';
+import About from './About';
+import NavBar from './NavBar'; // Make sure to import the NavBar component
 
-function BikeSharingData() {
-  const [bikesData, setBikesData] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchBikeData = async () => {
-      try {
-        const response = await axios.get('https://api.citybik.es/v2/networks/toronto');
-        setBikesData(response.data);
-        console.log(response.data)
-        setLoading(false);
-      } catch (error) {
-        console.error('Error fetching bike data:', error);
-      }
-    };
-
-    fetchBikeData();
-
-    // Cleanup function to avoid memory leaks
-    return () => {
-      // Cleanup code if needed
-    };
-  }, []); // Empty dependency array ensures the effect runs only once
-
-  return (
-    <div>
-      {loading ? (
-        <p>Loading...</p>
-      ) : (
-        <div>
-          <h2>Bike Sharing Data for Toronto, Ontario</h2>
-          <p>City: {bikesData?.network?.location?.city}</p>
-          <p>Country: {bikesData?.network?.location?.country}</p>
-          <p>Total Stations: {bikesData?.network?.stations?.length}</p>
-          {/* Render more data as needed */}
-        </div>
-      )}
-    </div>
-  );
+function App() {
+    return (
+        <Router>
+            <NavBar /> {/* This ensures NavBar is present on all pages */}
+            <Routes>
+                <Route path="/" element={<LandingPage />} />
+                <Route path="/map" element={<MapView />} />
+                <Route path="/about" element={<About />} />
+            </Routes>
+        </Router>
+    );
 }
 
-export default BikeSharingData;
-
+export default App;
