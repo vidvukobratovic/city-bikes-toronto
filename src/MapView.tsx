@@ -1,57 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import mapboxgl from 'mapbox-gl';
 
 const mapboxAccessToken = process.env.MAPBOX_ACCESS_TOKEN;
 
-function MapView() {
-    const [bikesData, setBikesData] = useState(null);
-    const [loading, setLoading] = useState(true);
-
-    useEffect(() => {
-        const fetchBikeData = async () => {
-            try {
-                const response = await axios.get('https://api.citybik.es/v2/networks/toronto');
-                setBikesData(response.data);
-                console.log(response.data);
-                setLoading(false);
-            } catch (error) {
-                console.error('Error fetching bike data:', error);
-            }
-        };
-
-        fetchBikeData();
-
-        return () => {
-            // Cleanup code if needed
-        };
-    }, []); // Empty dependency array ensures the effect runs only once
-
-    return (
-        <div>
-            {loading ? (
-                <p>Loading...</p>
-            ) : (
-                <div>
-                    <h2>Bike Sharing Data for Toronto, Ontario</h2>
-                    <p>City: {bikesData?.network?.location?.city}</p>
-                    <p>Country: {bikesData?.network?.location?.country}</p>
-                    <p>Total Stations: {bikesData?.network?.stations?.length}</p>
-                </div>
-            )}
-            <Map />
-        </div>
-    );
-}
-
 const Map: React.FC = () => {
     const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
+
     useEffect(() => {
         const map = new mapboxgl.Map({
-            container: 'map-container', // HTML element ID where we wabt ti out the map
+            container: 'map-container', // HTML element ID where we want to output the map
             style: 'mapbox://styles/mapbox/streets-v11',
             center: [-79.3832, 43.6532], // downtown toronto
-            zoom: 12, 
+            zoom: 12,
             accessToken: mapboxAccessToken
         });
 
@@ -80,4 +40,4 @@ const Map: React.FC = () => {
     );
 };
 
-export default MapView;
+export default Map;
