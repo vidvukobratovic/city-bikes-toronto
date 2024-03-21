@@ -4,7 +4,11 @@ export default {
     "./src/**/*.{js,jsx,ts,tsx}", // Adjust according to your project structure
   ],
   theme: {
-    extend: {},
+    extend: {
+      fontFamily: {
+        sans: ['"Mona Sans"', 'sans-serif'],
+      },
+    },
   },
   plugins: [],
 }

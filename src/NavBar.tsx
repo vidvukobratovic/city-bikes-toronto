@@ -4,20 +4,16 @@ import { Link } from 'react-router-dom';
 
 const NavBar = () => {
     return (
-        // Add 'fixed', 'top-0', 'left-0', and 'w-full' to fix the navbar to the top
-        <nav className="bg-gray-800 p-4 fixed top-0 left-0 w-full z-10">
-            <ul className="flex space-x-4 justify-center">
+        <nav className="nav py-4 px-6">
+            <ul className="flex space-x-20 justify-center">
                 <li>
-                    <Link to="/" className="text-white hover:text-gray-300">Home</Link>
+                    <Link to="/" className="text-white hover:text-gray-300 text-2xl md:text-2xl lg:text-4xl">HOME</Link>
                 </li>
                 <li>
-                    <Link to="/bikes" className="text-white hover:text-gray-300">Bike Sharing Data</Link>
+                    <Link to="/map" className="text-white hover:text-gray-300 text-2xl md:text-2xl lg:text-4xl">MAP</Link>
                 </li>
                 <li>
-                    <Link to="/map" className="text-white hover:text-gray-300">Map View</Link>
-                </li>
-                <li>
-                    <Link to="/about" className="text-white hover:text-gray-300">About</Link>
+                    <Link to="/about" className="text-white hover:text-gray-300 text-2xl md:text-2xl lg:text-4xl">ABOUT</Link>
                 </li>
             </ul>
         </nav>
