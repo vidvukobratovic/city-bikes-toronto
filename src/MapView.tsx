@@ -37,9 +37,8 @@ const Map: React.FC = () => {
         };
 
         fetchBikeData();
-    }, []);
 
-    useEffect(() => {
+        // Initialize map
         const map = new mapboxgl.Map({
             container: 'map-container', // HTML element ID where we want to output the map
             style: 'mapbox://styles/mapbox/dark-v11',
@@ -48,20 +47,30 @@ const Map: React.FC = () => {
             accessToken: mapboxAccessToken
         });
 
-        // Get user's current location
-        navigator.geolocation.getCurrentPosition(
-            position => {
-                const { longitude, latitude } = position.coords;
-                setUserLocation([longitude, latitude]);
-                map.flyTo({
-                    center: [longitude, latitude],
-                    essential: true
-                });
-            },
-            error => {
-                console.error('Error getting user location:', error);
-            }
-        );
+        // Listen for the map load event
+        map.on('load', () => {
+            // Get user's current location
+            navigator.geolocation.getCurrentPosition(
+                position => {
+                    const { longitude, latitude } = position.coords;
+                    setUserLocation([longitude, latitude]);
+                    map.flyTo({
+                        center: [longitude, latitude],
+                        essential: true
+                    });
+
+                    // Add marker at user's location
+                    const marker = new mapboxgl.Marker({
+                        draggable: false,
+                    })
+                        .setLngLat([longitude, latitude])
+                        .addTo(map);
+                },
+                error => {
+                    console.error('Error getting user location:', error);
+                }
+            );
+        });
 
         return () => {
             map.remove(); // Cleanup map instance on component unmount
