@@ -162,7 +162,7 @@ const Map: React.FC = () => {
     };
 
     return (
-        <div>
+        <div className="relative">
             {loading ? (
                 <p>Loading...</p>
             ) : (
@@ -173,19 +173,23 @@ const Map: React.FC = () => {
                     <p>Total Stations: {bikesData?.network?.stations?.length}</p>
                 </div>
             )}
-            <div id="map-container" style={{ width: '100%', height: '400px' }}></div>
-            <div>
-                <label>
-                    <input
-                        type="checkbox"
-                        checked={showAllStations}
-                        onChange={handleShowAllStationsToggle}
-                    />
-                    Show All Stations
-                </label>
+            <div id="map-container" className="w-full h-96 bg-gray-200 relative">
+                <div className="absolute top-4 left-4 z-10">
+                    <label className="flex items-center space-x-2">
+                        <input
+                            type="checkbox"
+                            checked={showAllStations}
+                            onChange={handleShowAllStationsToggle}
+                            className="form-checkbox h-5 w-5 text-indigo-600 bg-gray-700"
+                        />
+                        <span className="text-gray-700">Show All Stations</span>
+                    </label>
+                </div>
             </div>
         </div>
     );
+    
+    
 };
 
 export default Map;
