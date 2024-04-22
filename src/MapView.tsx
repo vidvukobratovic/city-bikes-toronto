@@ -12,6 +12,8 @@ const Map: React.FC = () => {
     const [bikesData, setBikesData] = useState<Network | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
     const [nearestStations, setNearestStations] = useState<Station[]>([]);
+    const [allStations, setAllStatations] = useState<Station[]>([]);
+    const [showAllStations, setShowAllStations] = useState(false);
 
     useEffect(() => {
         const fetchBikeData = async () => {
@@ -21,13 +23,14 @@ const Map: React.FC = () => {
                 setBikesData(data);
                 setLoading(false);
                 console.log('api call', data);
-
                 // Filter and log stations with e-bikes
                 const stationsWithEbike = data?.network?.stations?.filter(station =>
                     station.extra?.has_ebikes && station.extra?.ebikes > 0
                 ) || [];
                 console.log('Stations with e-bikes:', stationsWithEbike);
 
+                setAllStatations(data?.network?.stations);
+                
                 // Set nearest stations
                 if (userLocation) {
                     const sortedStations = stationsWithEbike.sort((a, b) => {
@@ -77,6 +80,41 @@ const Map: React.FC = () => {
             });
         }
     }, [userLocation, nearestStations, map]);
+    
+    useEffect(() => {
+        if (userLocation && map) {
+            // Remove all existing markers
+            map?.markers?.forEach(marker => marker.remove());
+    
+            if (showAllStations) {
+                // Add markers for all stations
+                allStations.forEach(station => {
+                    const marker = new mapboxgl.Marker({
+                        color: 'green',
+                        draggable: false,
+                    })
+                        .setLngLat([station.longitude, station.latitude])
+                        .addTo(map);
+                    // Store the marker reference in map object
+                    map.markers = map.markers || [];
+                    map.markers.push(marker);
+                });
+            } else {
+                // Add markers for nearest stations
+                nearestStations.forEach(station => {
+                    const marker = new mapboxgl.Marker({
+                        color: 'red',
+                        draggable: false,
+                    })
+                        .setLngLat([station.longitude, station.latitude])
+                        .addTo(map);
+                    // Store the marker reference in map object
+                    map.markers = map.markers || [];
+                    map.markers.push(marker);
+                });
+            }
+        }
+    }, [userLocation, nearestStations, allStations, map, showAllStations]);
 
     useEffect(() => {
         if (!map) return;
@@ -119,8 +157,12 @@ const Map: React.FC = () => {
         return deg * (Math.PI / 180)
     }
 
+    const handleShowAllStationsToggle = () => {
+        setShowAllStations(prevState => !prevState);
+    };
+
     return (
-        <div>
+        <div className="relative">
             {loading ? (
                 <p>Loading...</p>
             ) : (
@@ -131,9 +173,23 @@ const Map: React.FC = () => {
                     <p>Total Stations: {bikesData?.network?.stations?.length}</p>
                 </div>
             )}
-            <div id="map-container" style={{ width: '100%', height: '400px' }}></div>
+            <div id="map-container" className="w-full h-96 bg-gray-200 relative">
+                <div className="absolute top-4 left-4 z-10">
+                    <label className="flex items-center space-x-2">
+                        <input
+                            type="checkbox"
+                            checked={showAllStations}
+                            onChange={handleShowAllStationsToggle}
+                            className="form-checkbox h-5 w-5 text-indigo-600 bg-gray-700"
+                        />
+                        <span className="text-gray-700">Show All Stations</span>
+                    </label>
+                </div>
+            </div>
         </div>
     );
+    
+    
 };
 
 export default Map;
