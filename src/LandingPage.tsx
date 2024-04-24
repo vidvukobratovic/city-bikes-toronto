@@ -10,7 +10,7 @@ const LandingPage = () => {
                 <a href="https://bikesharetoronto.com/" className="no-underline hover:no-underline text-inherit ml-1">BIKESHARE</a>
             </p>
             {/* Button to redirect to MapView */}
-            <Link to="/map" className="mt-12 inline-block bg-[#6638f0] hover:bg-[#df68b4] text-white hover:text-black font-bold py-4 px-6 rounded-full text-lg md:text-xl transition duration-300 ease-in-out">
+            <Link to="/map" className="mt-12 inline-block bg-[#6638f0] hover:bg-[#df68b4] text-white hover:text-black font-bold py-4 px-8 rounded-full text-lg md:text-xl transition duration-300 ease-in-out">
                 Find E-Bikes
             </Link>
         </div>

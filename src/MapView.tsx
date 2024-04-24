@@ -182,7 +182,7 @@ const Map: React.FC = () => {
                             onChange={handleShowAllStationsToggle}
                             className="form-checkbox h-5 w-5 text-indigo-600 bg-gray-700"
                         />
-                        <span className="text-gray-700">Show All Stations</span>
+                        <span className="text-white">Show All Stations</span>
                     </label>
                 </div>
             </div>
