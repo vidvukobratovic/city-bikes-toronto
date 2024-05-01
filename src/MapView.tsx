@@ -174,7 +174,7 @@ const Map: React.FC = () => {
                 </div>
             )}
             <div id="map-container" className="w-full h-96 bg-gray-200 relative">
-                <div className="absolute top-4 left-4 z-10">
+                <div className="absolute top-4 left-4 z-10 bg-yellow-300 p-2 rounded-lg">
                     <label className="flex items-center space-x-2">
                         <input
                             type="checkbox"
