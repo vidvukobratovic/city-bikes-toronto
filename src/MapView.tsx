@@ -93,8 +93,17 @@ const Map: React.FC = () => {
                         color: 'green',
                         draggable: false,
                     })
-                        .setLngLat([station.longitude, station.latitude])
-                        .addTo(map);
+                    .setLngLat([station.longitude, station.latitude])
+                    .addTo(map);
+                    
+                    // Add click event listener to show popup
+                    marker.getElement().addEventListener('click', () => {
+                        new mapboxgl.Popup()
+                            .setLngLat([station.longitude, station.latitude])
+                            .setHTML(`<p>${station.extra.address}</p>`)
+                            .addTo(map);
+                    });
+    
                     // Store the marker reference in map object
                     map.markers = map.markers || [];
                     map.markers.push(marker);
@@ -106,8 +115,23 @@ const Map: React.FC = () => {
                         color: 'red',
                         draggable: false,
                     })
-                        .setLngLat([station.longitude, station.latitude])
-                        .addTo(map);
+                    .setLngLat([station.longitude, station.latitude])
+                    .addTo(map);
+// Add click event listener to show popup
+marker.getElement().addEventListener('click', () => {
+    console.log('Station:', station);
+    const popup = new mapboxgl.Popup({
+        closeButton: false,
+        closeOnClick: false,
+    })
+    .setLngLat([station.longitude, station.latitude])
+    .setHTML(`
+    <div class="bg-white shadow-md rounded-md p-2">
+        <p class="text-sm font-medium text-gray-800">${station.extra.address}</p>
+    </div>
+`)
+    popup.addTo(map);
+});
                     // Store the marker reference in map object
                     map.markers = map.markers || [];
                     map.markers.push(marker);
