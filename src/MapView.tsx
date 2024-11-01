@@ -5,7 +5,7 @@ import { Network } from './interfaces/Network';
 import { Station } from './interfaces/Station';
 import { Extra } from './interfaces/Extra';
 
-const mapboxAccessToken = process.env.MAPBOX_ACCESS_TOKEN;
+const mapboxAccessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 
 const Map: React.FC = () => {
     const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
@@ -18,7 +18,7 @@ const Map: React.FC = () => {
     useEffect(() => {
         const fetchBikeData = async () => {
             try {
-                const response = await axios.get('https://api.citybik.es/v2/networks/toronto');
+                const response = await axios.get('https://api.citybik.es/v2/networks/bixi-toronto');
                 const data: Network = response.data;
                 setBikesData(data);
                 setLoading(false);
@@ -192,8 +192,6 @@ marker.getElement().addEventListener('click', () => {
             ) : (
                 <div>
                     <h2>Bike Sharing Data for Toronto, Ontario</h2>
-                    <p>City: {bikesData?.network?.location?.city}</p>
-                    <p>Country: {bikesData?.network?.location?.country}</p>
                     <p>Total Stations: {bikesData?.network?.stations?.length}</p>
                 </div>
             )}
