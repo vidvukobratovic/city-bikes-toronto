@@ -5,7 +5,7 @@ import { Network } from './interfaces/Network';
 import { Station } from './interfaces/Station';
 import { Extra } from './interfaces/Extra';
 
-const mapboxAccessToken = process.env.MAPBOX_ACCESS_TOKEN;
+const mapboxAccessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 
 const Map: React.FC = () => {
     const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
@@ -18,7 +18,7 @@ const Map: React.FC = () => {
     useEffect(() => {
         const fetchBikeData = async () => {
             try {
-                const response = await axios.get('https://api.citybik.es/v2/networks/toronto');
+                const response = await axios.get('https://api.citybik.es/v2/networks/bixi-toronto');
                 const data: Network = response.data;
                 setBikesData(data);
                 setLoading(false);
@@ -93,8 +93,17 @@ const Map: React.FC = () => {
                         color: 'green',
                         draggable: false,
                     })
-                        .setLngLat([station.longitude, station.latitude])
-                        .addTo(map);
+                    .setLngLat([station.longitude, station.latitude])
+                    .addTo(map);
+                    
+                    // Add click event listener to show popup
+                    marker.getElement().addEventListener('click', () => {
+                        new mapboxgl.Popup()
+                            .setLngLat([station.longitude, station.latitude])
+                            .setHTML(`<p>${station.extra.address}</p>`)
+                            .addTo(map);
+                    });
+    
                     // Store the marker reference in map object
                     map.markers = map.markers || [];
                     map.markers.push(marker);
@@ -106,8 +115,23 @@ const Map: React.FC = () => {
                         color: 'red',
                         draggable: false,
                     })
-                        .setLngLat([station.longitude, station.latitude])
-                        .addTo(map);
+                    .setLngLat([station.longitude, station.latitude])
+                    .addTo(map);
+// Add click event listener to show popup
+marker.getElement().addEventListener('click', () => {
+    console.log('Station:', station);
+    const popup = new mapboxgl.Popup({
+        closeButton: false,
+        closeOnClick: false,
+    })
+    .setLngLat([station.longitude, station.latitude])
+    .setHTML(`
+    <div class="bg-white shadow-md rounded-md p-2">
+        <p class="text-sm font-medium text-gray-800">${station.extra.address}</p>
+    </div>
+`)
+    popup.addTo(map);
+});
                     // Store the marker reference in map object
                     map.markers = map.markers || [];
                     map.markers.push(marker);
@@ -168,13 +192,11 @@ const Map: React.FC = () => {
             ) : (
                 <div>
                     <h2>Bike Sharing Data for Toronto, Ontario</h2>
-                    <p>City: {bikesData?.network?.location?.city}</p>
-                    <p>Country: {bikesData?.network?.location?.country}</p>
                     <p>Total Stations: {bikesData?.network?.stations?.length}</p>
                 </div>
             )}
             <div id="map-container" className="w-full h-96 bg-gray-200 relative">
-                <div className="absolute top-4 left-4 z-10">
+                <div className="absolute top-4 left-4 z-10 bg-yellow-300 p-2 rounded-lg">
                     <label className="flex items-center space-x-2">
                         <input
                             type="checkbox"
