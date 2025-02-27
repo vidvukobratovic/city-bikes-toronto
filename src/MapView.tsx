@@ -1,56 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import mapboxgl from 'mapbox-gl';
-import { Network } from './interfaces/Network';
-import { Station } from './interfaces/Station';
-import { Extra } from './interfaces/Extra';
+import useBikeData from './hooks/useBikeData';
 
 const mapboxAccessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 
 const Map: React.FC = () => {
     const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
-    const [bikesData, setBikesData] = useState<Network | null>(null);
-    const [loading, setLoading] = useState<boolean>(true);
-    const [nearestStations, setNearestStations] = useState<Station[]>([]);
-    const [allStations, setAllStatations] = useState<Station[]>([]);
+    const { bikesData, loading, nearestStations, allStations } = useBikeData(userLocation);
     const [showAllStations, setShowAllStations] = useState(false);
-
-    useEffect(() => {
-        const fetchBikeData = async () => {
-            try {
-                const response = await axios.get('https://api.citybik.es/v2/networks/bixi-toronto');
-                const data: Network = response.data;
-                setBikesData(data);
-                setLoading(false);
-                console.log('api call', data);
-                // Filter and log stations with e-bikes
-                const stationsWithEbike = data?.network?.stations?.filter(station =>
-                    station.extra?.has_ebikes && station.extra?.ebikes > 0
-                ) || [];
-                console.log('Stations with e-bikes:', stationsWithEbike);
-
-                setAllStatations(data?.network?.stations);
-                
-                // Set nearest stations
-                if (userLocation) {
-                    const sortedStations = stationsWithEbike.sort((a, b) => {
-                        const distanceA = calculateDistance(userLocation, [a.longitude, a.latitude]);
-                        const distanceB = calculateDistance(userLocation, [b.longitude, b.latitude]);
-                        return distanceA - distanceB;
-                    });
-                    const closestStations = sortedStations.slice(0, 3);
-                    setNearestStations(closestStations);
-                    console.log('Nearest stations with e-bikes:', closestStations);
-                }
-            } catch (error) {
-                console.error('Error fetching bike data:', error);
-                setLoading(false);
-            }
-        };
-
-        fetchBikeData();
-    }, [userLocation]);
-
     const [map, setMap] = useState<mapboxgl.Map | null>(null);
 
     useEffect(() => {
@@ -69,121 +26,50 @@ const Map: React.FC = () => {
     }, []);
 
     useEffect(() => {
-        if (userLocation && nearestStations.length > 0 && map) {
-            nearestStations.forEach(station => {
-                const marker = new mapboxgl.Marker({
-                    color: 'red',
-                    draggable: false,
-                })
-                    .setLngLat([station.longitude, station.latitude])
-                    .addTo(map);
-            });
-        }
-    }, [userLocation, nearestStations, map]);
-    
-    useEffect(() => {
         if (userLocation && map) {
-            // Remove all existing markers
-            map?.markers?.forEach(marker => marker.remove());
-    
-            if (showAllStations) {
-                // Add markers for all stations
-                allStations.forEach(station => {
-                    const marker = new mapboxgl.Marker({
-                        color: 'green',
-                        draggable: false,
-                    })
-                    .setLngLat([station.longitude, station.latitude])
-                    .addTo(map);
-                    
-                    // Add click event listener to show popup
-                    marker.getElement().addEventListener('click', () => {
-                        new mapboxgl.Popup()
-                            .setLngLat([station.longitude, station.latitude])
-                            .setHTML(`<p>${station.extra.address}</p>`)
-                            .addTo(map);
-                    });
-    
-                    // Store the marker reference in map object
-                    map.markers = map.markers || [];
-                    map.markers.push(marker);
-                });
-            } else {
-                // Add markers for nearest stations
-                nearestStations.forEach(station => {
-                    const marker = new mapboxgl.Marker({
-                        color: 'red',
-                        draggable: false,
-                    })
-                    .setLngLat([station.longitude, station.latitude])
-                    .addTo(map);
-// Add click event listener to show popup
-marker.getElement().addEventListener('click', () => {
-    console.log('Station:', station);
-    const popup = new mapboxgl.Popup({
-        closeButton: false,
-        closeOnClick: false,
-    })
-    .setLngLat([station.longitude, station.latitude])
-    .setHTML(`
-    <div class="bg-white shadow-md rounded-md p-2">
-        <p class="text-sm font-medium text-gray-800">${station.extra.address}</p>
-    </div>
-`)
-    popup.addTo(map);
-});
-                    // Store the marker reference in map object
-                    map.markers = map.markers || [];
-                    map.markers.push(marker);
-                });
-            }
+            map.flyTo({ center: userLocation, essential: true });
+            new mapboxgl.Marker({ draggable: false }).setLngLat(userLocation).addTo(map);
         }
-    }, [userLocation, nearestStations, allStations, map, showAllStations]);
+    }, [userLocation, map]);
 
     useEffect(() => {
         if (!map) return;
 
         navigator.geolocation.getCurrentPosition(
             position => {
-                const { longitude, latitude } = position.coords;
-                setUserLocation([longitude, latitude]);
-                map.flyTo({
-                    center: [longitude, latitude],
-                    essential: true
-                });
-
-                const userMarker = new mapboxgl.Marker({
-                    draggable: false,
-                })
-                    .setLngLat([longitude, latitude])
-                    .addTo(map);
+                setUserLocation([position.coords.longitude, position.coords.latitude]);
             },
-            error => {
-                console.error('Error getting user location:', error);
-            }
+            error => console.error('Error getting user location:', error)
         );
     }, [map]);
 
-    const calculateDistance = ([lon1, lat1]: [number, number], [lon2, lat2]: [number, number]): number => {
-        const R = 6371;
-        const dLat = deg2rad(lat2 - lat1);
-        const dLon = deg2rad(lon2 - lon1);
-        const a =
-            Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-            Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
-            Math.sin(dLon / 2) * Math.sin(dLon / 2);
-        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        const d = R * c;
-        return d;
-    }
+    useEffect(() => {
+        if (!map || !userLocation) return;
 
-    const deg2rad = (deg: number): number => {
-        return deg * (Math.PI / 180)
-    }
+        // Remove existing markers
+        map?.markers?.forEach(marker => marker.remove());
 
-    const handleShowAllStationsToggle = () => {
-        setShowAllStations(prevState => !prevState);
-    };
+        const stationsToShow = showAllStations ? allStations : nearestStations;
+
+        stationsToShow.forEach(station => {
+            const marker = new mapboxgl.Marker({
+                color: showAllStations ? 'green' : 'red',
+                draggable: false,
+            })
+                .setLngLat([station.longitude, station.latitude])
+                .addTo(map);
+
+            marker.getElement().addEventListener('click', () => {
+                new mapboxgl.Popup()
+                    .setLngLat([station.longitude, station.latitude])
+                    .setHTML(`<p>${station.extra.address}</p>`)
+                    .addTo(map);
+            });
+
+            map.markers = map.markers || [];
+            map.markers.push(marker);
+        });
+    }, [userLocation, nearestStations, allStations, map, showAllStations]);
 
     return (
         <div className="relative">
@@ -201,7 +87,7 @@ marker.getElement().addEventListener('click', () => {
                         <input
                             type="checkbox"
                             checked={showAllStations}
-                            onChange={handleShowAllStationsToggle}
+                            onChange={() => setShowAllStations(prev => !prev)}
                             className="form-checkbox h-5 w-5 text-indigo-600 bg-gray-700"
                         />
                         <span className="text-gray-700">Show All Stations</span>
@@ -210,8 +96,6 @@ marker.getElement().addEventListener('click', () => {
             </div>
         </div>
     );
-    
-    
 };
 
 export default Map;
