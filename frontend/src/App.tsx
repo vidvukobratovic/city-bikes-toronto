@@ -1,8 +1,8 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import LandingPage from './LandingPage';
-import MapView from './MapView';
-import About from './About';
-import NavBar from './NavBar'; // Make sure to import the NavBar component
+import LandingPage from './pages/LandingPage';
+import MapView from './pages/MapView';
+import About from './pages/About';
+import NavBar from './components/NavBar';
 
 function App() {
     return (
