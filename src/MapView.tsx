@@ -1,41 +1,44 @@
-import React, { useState, useEffect } from 'react';
+// MapView.tsx
+import React, { useState } from 'react';
 import useBikeData from './hooks/useBikeData';
 import useMap from './hooks/useMap';
+import { useLocation } from './hooks/useLocation';
 import StationToggle from './components/StationToggle';
+import LoadingSpinner from './components/LoadingSpinner';
+import StationInfo from './components/StationInfo';
+import ErrorMessage from './components/ErrorMessage';
 
-const Map: React.FC = () => {
-    const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
+const MapView: React.FC = () => {
     const [showAllStations, setShowAllStations] = useState(false);
+    const { userLocation, loading: locationLoading, error: locationError } = useLocation();
+    const { bikesData, loading: dataLoading, error: dataError, nearestStations, allStations } = useBikeData(userLocation);
+    useMap(userLocation, showAllStations ? allStations : nearestStations, showAllStations);
 
-    const { bikesData, loading, nearestStations, allStations } = useBikeData(userLocation);
-    const { map } = useMap(userLocation, showAllStations ? allStations : nearestStations, showAllStations);
-
-    useEffect(() => {
-        if (!map) return;
-
-        navigator.geolocation.getCurrentPosition(
-            position => {
-                setUserLocation([position.coords.longitude, position.coords.latitude]);
-            },
-            error => console.error('Error getting user location:', error)
-        );
-    }, [map]);
+    const loading = locationLoading || dataLoading;
+    const error = locationError || dataError;
 
     return (
-        <div className="relative">
+        <div className="relative min-h-screen p-4">
             {loading ? (
-                <p>Loading...</p>
+                <LoadingSpinner message="Loading map and station data..." />
+            ) : error ? (
+                <ErrorMessage message={error} />
             ) : (
-                <div>
-                    <h2>Bike Sharing Data for Toronto, Ontario</h2>
-                    <p>Total Stations: {bikesData?.network?.stations?.length}</p>
-                </div>
+                <>
+                    <StationInfo
+                        totalStations={bikesData?.network?.stations?.length}
+                        networkName={bikesData?.network?.location?.city}
+                    />
+                    <div id="map-container" className="w-full h-96 bg-gray-200 relative rounded-lg overflow-hidden">
+                        <StationToggle
+                            showAllStations={showAllStations}
+                            setShowAllStations={setShowAllStations}
+                        />
+                    </div>
+                </>
             )}
-            <div id="map-container" className="w-full h-96 bg-gray-200 relative">
-                <StationToggle showAllStations={showAllStations} setShowAllStations={setShowAllStations} />
-            </div>
         </div>
     );
 };
 
-export default Map;
+export default MapView;
