@@ -2,7 +2,7 @@ import React from 'react';
 
 interface StationToggleProps {
     showAllStations: boolean;
-    setShowAllStations: (value: boolean) => void;
+    setShowAllStations: (value: boolean | ((prev: boolean) => boolean)) => void;
 }
 
 const StationToggle: React.FC<StationToggleProps> = ({ showAllStations, setShowAllStations }) => {

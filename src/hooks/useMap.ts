@@ -1,9 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import mapboxgl from 'mapbox-gl';
 import { Station } from '../interfaces/Station';
 
 const useMap = (userLocation: [number, number] | null, stations: Station[], showAll: boolean) => {
     const [map, setMap] = useState<mapboxgl.Map | null>(null);
+    const markersRef = useRef<mapboxgl.Marker[]>([]);
+    const userMarkerRef = useRef<mapboxgl.Marker | null>(null);
 
     useEffect(() => {
         const initializedMap = new mapboxgl.Map({
@@ -26,15 +28,23 @@ const useMap = (userLocation: [number, number] | null, stations: Station[], show
 
         map.flyTo({ center: userLocation, essential: true });
 
+        // Remove existing user marker
+        if (userMarkerRef.current) {
+            userMarkerRef.current.remove();
+        }
+
         // Add user location marker
-        new mapboxgl.Marker({ draggable: false }).setLngLat(userLocation).addTo(map);
+        userMarkerRef.current = new mapboxgl.Marker({ draggable: false })
+            .setLngLat(userLocation)
+            .addTo(map);
     }, [map, userLocation]);
 
     useEffect(() => {
         if (!map) return;
 
-        // Remove existing markers
-        map?.markers?.forEach(marker => marker.remove());
+        // Remove existing station markers
+        markersRef.current.forEach(marker => marker.remove());
+        markersRef.current = [];
 
         stations.forEach(station => {
             const marker = new mapboxgl.Marker({
@@ -51,8 +61,7 @@ const useMap = (userLocation: [number, number] | null, stations: Station[], show
                     .addTo(map);
             });
 
-            map.markers = map.markers || [];
-            map.markers.push(marker);
+            markersRef.current.push(marker);
         });
     }, [map, stations, showAll]);
 
